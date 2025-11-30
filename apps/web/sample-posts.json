@@ -1,0 +1,34 @@
+{
+  "posts": [
+    {
+      "id": "post_001",
+      "author": "@sama",
+      "content": "AGI in 2025 is looking more realistic than most people think. The pace of AI capability improvements is extraordinary.",
+      "timestamp": "2024-11-30T10:00:00Z"
+    },
+    {
+      "id": "post_002",
+      "author": "@paulg",
+      "content": "The best way to predict the future is to build it. Stop waiting for permission and just start shipping.",
+      "timestamp": "2024-11-30T11:30:00Z"
+    },
+    {
+      "id": "post_003",
+      "author": "@levelsio",
+      "content": "Built $500K revenue with no employees as a solo founder. The tools available today make this possible for anyone.",
+      "timestamp": "2024-11-30T12:45:00Z"
+    },
+    {
+      "id": "post_004",
+      "author": "@swyx",
+      "content": "AI agents are moving from research to production. Everyone should be building with them right now.",
+      "timestamp": "2024-11-30T14:20:00Z"
+    },
+    {
+      "id": "post_005",
+      "author": "@naval",
+      "content": "Specific knowledge cannot be taught. It can only be learned through apprenticeship and self-teaching.",
+      "timestamp": "2024-11-30T15:00:00Z"
+    }
+  ]
+}
