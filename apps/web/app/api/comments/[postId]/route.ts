@@ -53,6 +53,7 @@ export async function GET(
 
     // Transform to match expected format with sequential display numbering
     const commentVariants = comments.map((c, index) => ({
+      id: c.id, // Include ID for editing
       version: index + 1, // Sequential numbering: 1, 2, 3, 4, 5...
       comment: c.commentText,
       style: c.style || '',

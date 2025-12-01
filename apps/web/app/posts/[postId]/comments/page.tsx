@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, Copy, Check, ArrowLeft, AlertCircle } from 'lucide-react'
+import { Loader2, Copy, Check, ArrowLeft, AlertCircle, Pencil, Save, X } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
 
 type CommentData = {
   metadata: {
@@ -27,6 +28,7 @@ type CommentData = {
     reasoning: string
   }
   comments: Array<{
+    id?: string // Added optional ID
     version: number
     comment: string
     style: string
@@ -58,6 +60,11 @@ export default function CommentsPage({
   const [error, setError] = useState<string | null>(null)
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
   const [regenerating, setRegenerating] = useState(false)
+  
+  // Editing state
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editText, setEditText] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
     generateComments()
@@ -144,6 +151,55 @@ export default function CommentsPage({
     await navigator.clipboard.writeText(text)
     setCopiedIndex(index)
     setTimeout(() => setCopiedIndex(null), 2000)
+  }
+
+  const startEditing = (id: string, text: string) => {
+    setEditingId(id)
+    setEditText(text)
+  }
+
+  const cancelEditing = () => {
+    setEditingId(null)
+    setEditText('')
+  }
+
+  const saveEdit = async (id: string) => {
+    if (!editText.trim()) return
+    
+    setIsSaving(true)
+    try {
+      const response = await fetch('/api/comments/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id,
+          commentText: editText,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update comment')
+      }
+
+      // Update local state
+      setData((prev) => {
+        if (!prev) return null
+        return {
+          ...prev,
+          comments: prev.comments.map((c) => 
+            c.id === id ? { ...c, comment: editText } : c
+          ),
+        }
+      })
+      
+      setEditingId(null)
+    } catch (err) {
+      alert('Failed to save changes')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   if (loading) {
@@ -295,6 +351,7 @@ export default function CommentsPage({
             {data.comments.map((comment, index) => {
               const score = data.quality_assessment.variant_scores[index]
               const isRecommended = data.quality_assessment.recommended_variant === comment.version
+              const isEditing = editingId === comment.id
 
               if (!score) return null
 
@@ -313,27 +370,73 @@ export default function CommentsPage({
                         </CardTitle>
                         <CardDescription>{comment.style}</CardDescription>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => copyToClipboard(comment.comment, index)}
-                      >
-                        {copiedIndex === index ? (
+                      <div className="flex gap-2">
+                        {isEditing ? (
                           <>
-                            <Check className="mr-2 h-4 w-4" />
-                            Copied!
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={cancelEditing}
+                              disabled={isSaving}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => comment.id && saveEdit(comment.id)}
+                              disabled={isSaving}
+                            >
+                              {isSaving ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Save className="h-4 w-4" />
+                              )}
+                            </Button>
                           </>
                         ) : (
                           <>
-                            <Copy className="mr-2 h-4 w-4" />
-                            Copy
+                            {comment.id && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => startEditing(comment.id!, comment.comment)}
+                              >
+                                <Pencil className="h-4 w-4 text-muted-foreground" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => copyToClipboard(comment.comment, index)}
+                            >
+                              {copiedIndex === index ? (
+                                <>
+                                  <Check className="mr-2 h-4 w-4" />
+                                  Copied!
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="mr-2 h-4 w-4" />
+                                  Copy
+                                </>
+                              )}
+                            </Button>
                           </>
                         )}
-                      </Button>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <p className="text-sm leading-relaxed">{comment.comment}</p>
+                    {isEditing ? (
+                      <Textarea
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        className="min-h-[100px]"
+                      />
+                    ) : (
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{comment.comment}</p>
+                    )}
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                       <div>
