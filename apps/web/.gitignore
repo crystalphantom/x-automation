@@ -35,5 +35,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Mastra
+mastra.db
+mastra.db-shm
+mastra.db-wal
+
 bun.lockb
 bun.lock

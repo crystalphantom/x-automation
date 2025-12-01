@@ -11,7 +11,7 @@
     "check-types": "next typegen && tsc --noEmit",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "mastra:studio": "mastra studio",
+    "mastra:studio": "cd ../mastra-api && mastra dev",
     "trace:count": "sqlite3 mastra.db 'SELECT COUNT(*) as total_traces FROM mastra_ai_spans;'",
     "trace:view": "sqlite3 -header -column mastra.db 'SELECT name, spanType, startedAt FROM mastra_ai_spans ORDER BY startedAt DESC LIMIT 10;'"
   },
@@ -34,6 +34,7 @@
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.44.7",
     "lucide-react": "^0.555.0",
+    "mastra-api": "*",
     "next": "^16.0.1",
     "postgres": "^3.4.7",
     "react": "^19.2.0",

@@ -1,0 +1,28 @@
+{
+  "name": "mastra-api",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "main": "./src/mastra/index.ts",
+  "exports": {
+    ".": "./src/mastra/index.ts"
+  },
+  "scripts": {
+    "dev": "mastra dev",
+    "build": "mastra build",
+    "start": "mastra start",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^2.0.44",
+    "@mastra/core": "^0.24.6",
+    "@mastra/libsql": "^0.16.3",
+    "ai": "^5.0.104",
+    "mastra": "^0.18.6",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*",
+    "typescript": "5.9.2"
+  }
+}

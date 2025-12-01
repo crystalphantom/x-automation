@@ -1,34 +1,20 @@
-import { mastra } from '../lib/mastra.config'
+import { mastra } from "../lib/mastra.config";
 
 async function viewTraces() {
   try {
-    // Get recent traces
-    const traces = await mastra.storage.getTraces({ limit: 10 })
-    
-    console.log('📊 Recent Traces:')
-    console.log('================')
-    
-    for (const trace of traces) {
-      console.log(`\n🔍 Trace ID: ${trace.traceId}`)
-      console.log(`   Service: ${trace.serviceName}`)
-      console.log(`   Timestamp: ${new Date(trace.timestamp).toLocaleString()}`)
-      console.log(`   Duration: ${trace.duration}ms`)
-      
-      // Get spans for this trace
-      const spans = await mastra.storage.getSpans({ traceId: trace.traceId })
-      
-      console.log(`   Spans (${spans.length}):`)
-      spans.forEach(span => {
-        console.log(`     - ${span.name}: ${span.duration}ms`)
-      })
-    }
-    
-    const totalTraces = await mastra.storage.countTraces()
-    console.log(`\n✅ Total traces in database: ${totalTraces}`)
-    
+    console.log("📊 Mastra Studio Traces Viewer");
+    console.log("=============================");
+    console.log("To view traces, use the Studio UI at http://localhost:4111");
+    console.log("Or run: cd ../mastra-api && bun run dev");
+    console.log("");
+    console.log("Available agents:");
+    console.log("- postAnalyzer: Post Analyzer Agent");
+    console.log("- strategy: Strategy Agent");
+    console.log("- commentGenerator: Comment Generator Agent");
+    console.log("- qa: Quality Assurance Agent");
   } catch (error) {
-    console.error('Error fetching traces:', error)
+    console.error("Error:", error);
   }
 }
 
-viewTraces()
+viewTraces();
