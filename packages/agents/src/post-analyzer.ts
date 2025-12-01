@@ -1,5 +1,4 @@
 import { Agent } from '@mastra/core'
-import { generateText } from 'ai'
 import { google } from '@ai-sdk/google'
 import type { RawPost, PostMetadata } from './types'
 
@@ -45,10 +44,11 @@ Posted at: ${post.timestamp}
 
 Provide metadata as JSON.`
 
-  const result = await generateText({
-    model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
-    prompt: `${analyzerPrompt}\n\n${prompt}`,
-    temperature: 0.3,
+  // Use agent's generate method for automatic tracing
+  const result = await postAnalyzerAgent.generate(prompt, {
+    modelSettings: {
+      temperature: 0.3,
+    },
   })
 
   // Parse JSON from response

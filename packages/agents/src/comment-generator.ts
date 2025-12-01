@@ -1,5 +1,4 @@
 import { Agent } from '@mastra/core'
-import { generateText } from 'ai'
 import { google } from '@ai-sdk/google'
 import type {
   RawPost,
@@ -69,10 +68,11 @@ Strategy Parameters:
 
 Generate creative, engaging comments as JSON.`
 
-  const result = await generateText({
-    model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
-    prompt: `${generatorPrompt}\n\n${prompt}`,
-    temperature: 0.8,
+  // Use agent's generate method for automatic tracing
+  const result = await commentGeneratorAgent.generate(prompt, {
+    modelSettings: {
+      temperature: 0.8,
+    },
   })
 
   // Parse JSON from response

@@ -10,12 +10,17 @@
     "lint": "eslint --max-warnings 0",
     "check-types": "next typegen && tsc --noEmit",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "mastra:studio": "mastra studio",
+    "trace:count": "sqlite3 mastra.db 'SELECT COUNT(*) as total_traces FROM mastra_ai_spans;'",
+    "trace:view": "sqlite3 -header -column mastra.db 'SELECT name, spanType, startedAt FROM mastra_ai_spans ORDER BY startedAt DESC LIMIT 10;'"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.44",
     "@hookform/resolvers": "^5.2.2",
+    "@libsql/client": "^0.15.15",
     "@mastra/core": "^0.24.6",
+    "@mastra/libsql": "^0.16.3",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-select": "^2.2.6",
@@ -38,6 +43,7 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
+    "@mastra/deployer": "^0.24.6",
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
     "@types/node": "^22.15.3",

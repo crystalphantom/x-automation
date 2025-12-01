@@ -1,5 +1,4 @@
 import { Agent } from '@mastra/core'
-import { generateText } from 'ai'
 import { google } from '@ai-sdk/google'
 import type {
   PostMetadata,
@@ -72,10 +71,11 @@ User Preferences:
 
 Make your decision as JSON.`
 
-  const result = await generateText({
-    model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
-    prompt: `${strategyPrompt}\n\n${prompt}`,
-    temperature: 0.4,
+  // Use agent's generate method for automatic tracing
+  const result = await strategyAgent.generate(prompt, {
+    modelSettings: {
+      temperature: 0.4,
+    },
   })
 
   // Parse JSON from response
