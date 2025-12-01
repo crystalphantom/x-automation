@@ -5,9 +5,6 @@ import type {
   PostMetadata,
   UserPreferences,
   StrategyDecision,
-  ToneProfile,
-  CommentStyle,
-  CommentLength,
 } from './types'
 
 const strategyPrompt = `You are a strategic decision-maker for social media engagement. 
@@ -41,11 +38,7 @@ Be strategic and consider the user's engagement goals.`
 export const strategyAgent = new Agent({
   name: 'Strategy Agent',
   instructions: strategyPrompt,
-  model: {
-    provider: 'google',
-    name: 'gemini-2.0-flash-exp',
-    toolChoice: 'auto',
-  },
+  model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
 })
 
 export async function makeStrategyDecision(
@@ -80,7 +73,7 @@ User Preferences:
 Make your decision as JSON.`
 
   const result = await generateText({
-    model: google('gemini-2.0-flash-exp', { apiKey }),
+    model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
     prompt: `${strategyPrompt}\n\n${prompt}`,
     temperature: 0.4,
   })

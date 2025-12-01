@@ -32,6 +32,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
 # Google AI (Gemini)
 GOOGLE_GENERATIVE_AI_API_KEY=your-gemini-api-key
+MODEL_NAME=gemini-2.5-flash
 
 # App
 NEXT_PUBLIC_APP_URL=http://localhost:3000

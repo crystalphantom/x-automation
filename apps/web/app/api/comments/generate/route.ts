@@ -70,11 +70,17 @@ export async function POST(request: NextRequest) {
       reasoning: strategy.reasoning,
     })
 
-    // If should not comment, return early
+    // If should not comment, return early with strategy info
     if (!strategy.should_comment) {
       return NextResponse.json({
-        should_comment: false,
-        reasoning: strategy.reasoning,
+        metadata,
+        strategy,
+        comments: [],
+        quality_assessment: {
+          variant_scores: [],
+          recommended_variant: 0,
+          overall_assessment: 'not_applicable',
+        },
       })
     }
 
@@ -90,11 +96,33 @@ export async function POST(request: NextRequest) {
     // Step 4: Quality assurance
     const qaAssessment = await assessQuality(post.content, comments)
 
-    // Step 5: Store generated comments
+    // Step 5: Store generated comments with batch number
+    // Get the current max batch number for this post (if column exists)
+    let nextBatch = 1
+    try {
+      const existingComments = await db
+        .select({
+          id: generatedComments.id,
+          batchNumber: generatedComments.batchNumber,
+        })
+        .from(generatedComments)
+        .where(eq(generatedComments.postId, postId))
+
+      if (existingComments.length > 0) {
+        const maxBatch = Math.max(...existingComments.map(c => c.batchNumber || 1))
+        nextBatch = maxBatch + 1
+      }
+    } catch (error) {
+      // batch_number column doesn't exist yet, default to 1
+      console.log('batch_number column not found, using default batch 1')
+      nextBatch = 1
+    }
+
     const commentInserts = comments.variants.map((variant, idx) => {
       const score = qaAssessment.variant_scores[idx]
       return {
         postId,
+        batchNumber: nextBatch,
         variantNumber: variant.version,
         commentText: variant.comment,
         style: variant.style,

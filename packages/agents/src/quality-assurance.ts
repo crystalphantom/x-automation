@@ -1,7 +1,7 @@
 import { Agent } from '@mastra/core'
 import { generateText } from 'ai'
 import { google } from '@ai-sdk/google'
-import type { GeneratedComments, QAAssessment, QualityScore } from './types'
+import type { GeneratedComments, QAAssessment } from './types'
 
 const qaPrompt = `You are a quality assurance expert for social media comments. Your task is to evaluate generated comments for:
 
@@ -34,11 +34,7 @@ Be thorough and objective.`
 export const qaAgent = new Agent({
   name: 'Quality Assurance Agent',
   instructions: qaPrompt,
-  model: {
-    provider: 'google',
-    name: 'gemini-2.0-flash-exp',
-    toolChoice: 'auto',
-  },
+  model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
 })
 
 export async function assessQuality(
@@ -62,7 +58,7 @@ ${comments.variants.map((v) => `Version ${v.version}: "${v.comment}"`).join('\n'
 Provide detailed quality assessment as JSON.`
 
   const result = await generateText({
-    model: google('gemini-2.0-flash-exp', { apiKey }),
+    model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
     prompt: `${qaPrompt}\n\n${prompt}`,
     temperature: 0.2,
   })

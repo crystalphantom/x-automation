@@ -27,11 +27,7 @@ Be precise and analytical.`
 export const postAnalyzerAgent = new Agent({
   name: 'Post Analyzer',
   instructions: analyzerPrompt,
-  model: {
-    provider: 'google',
-    name: 'gemini-2.0-flash-exp',
-    toolChoice: 'auto',
-  },
+  model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
 })
 
 export async function analyzePost(post: RawPost): Promise<PostMetadata> {
@@ -50,7 +46,7 @@ Posted at: ${post.timestamp}
 Provide metadata as JSON.`
 
   const result = await generateText({
-    model: google('gemini-2.0-flash-exp', { apiKey }),
+    model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
     prompt: `${analyzerPrompt}\n\n${prompt}`,
     temperature: 0.3,
   })

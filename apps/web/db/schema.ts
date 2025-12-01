@@ -12,6 +12,7 @@ export const posts = pgTable('posts', {
 export const generatedComments = pgTable('generated_comments', {
   id: uuid('id').primaryKey().defaultRandom(),
   postId: text('post_id').references(() => posts.id, { onDelete: 'cascade' }),
+  batchNumber: integer('batch_number').default(1), // Optional for backwards compatibility
   variantNumber: integer('variant_number').notNull(),
   commentText: text('comment_text').notNull(),
   style: text('style'),

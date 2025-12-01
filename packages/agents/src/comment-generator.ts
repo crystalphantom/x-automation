@@ -5,7 +5,6 @@ import type {
   RawPost,
   StrategyDecision,
   GeneratedComments,
-  CommentVariant,
 } from './types'
 
 const generatorPrompt = `You are an expert social media comment writer. Your task is to generate engaging, contextually relevant comments for Twitter/X posts.
@@ -37,11 +36,7 @@ Be creative and engaging.`
 export const commentGeneratorAgent = new Agent({
   name: 'Comment Generator',
   instructions: generatorPrompt,
-  model: {
-    provider: 'google',
-    name: 'gemini-2.0-flash-exp',
-    toolChoice: 'auto',
-  },
+  model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
 })
 
 export async function generateComments(
@@ -75,7 +70,7 @@ Strategy Parameters:
 Generate creative, engaging comments as JSON.`
 
   const result = await generateText({
-    model: google('gemini-2.0-flash-exp', { apiKey }),
+    model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
     prompt: `${generatorPrompt}\n\n${prompt}`,
     temperature: 0.8,
   })
