@@ -1,10 +1,13 @@
-
-import { Mastra } from '@mastra/core'
-import { LibSQLStore } from '@mastra/libsql'
-import { postAnalyzerAgent } from './agents/post-analyzer'
-import { strategyAgent } from './agents/strategy-agent'
-import { commentGeneratorAgent } from './agents/comment-generator'
-import { qaAgent } from './agents/quality-assurance'
+import { Mastra } from "@mastra/core";
+import { LibSQLStore } from "@mastra/libsql";
+import { postAnalyzerAgent, analyzePost } from "./agents/post-analyzer";
+import { strategyAgent, makeStrategyDecision } from "./agents/strategy-agent";
+import {
+  commentGeneratorAgent,
+  generateComments,
+} from "./agents/comment-generator";
+import { qaAgent, assessQuality } from "./agents/quality-assurance";
+import type { RawPost, UserPreferences, PostMetadata } from "./types";
 
 export const mastra = new Mastra({
   agents: {
@@ -23,6 +26,12 @@ export const mastra = new Mastra({
 
   // Storage for traces (separate from application data)
   storage: new LibSQLStore({
-    url: 'file:./mastra.db',
+    url: "file:mastra.db",
   }),
-})
+});
+
+// Export agent functions for use in web app
+export { analyzePost, makeStrategyDecision, generateComments, assessQuality };
+
+// Export types
+export type { RawPost, UserPreferences, PostMetadata };
