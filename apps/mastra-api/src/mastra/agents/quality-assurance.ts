@@ -1,5 +1,8 @@
 import { Agent } from '@mastra/core'
 import { google } from '@ai-sdk/google'
+import {
+  createAnswerRelevancyScorer,
+} from '@mastra/evals/scorers/llm'
 import type { GeneratedComments, QAAssessment } from '../types'
 
 const qaPrompt = `You are a quality assurance expert for social media comments. Your task is to evaluate generated comments for:
@@ -30,10 +33,18 @@ Provide your assessment as valid JSON following this structure:
 
 Be thorough and objective.`
 
+const scorerModel = google(process.env.MODEL_NAME || 'gemini-2.5-flash')
+
 export const qaAgent = new Agent({
   name: 'Quality Assurance Agent',
   instructions: qaPrompt,
   model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
+  scorers: {
+    relevancy: {
+      scorer: createAnswerRelevancyScorer({ model: scorerModel }),
+      sampling: { type: 'ratio', rate: 1 },
+    },
+  },
 })
 
 export async function assessQuality(
