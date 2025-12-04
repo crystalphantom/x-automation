@@ -1,5 +1,9 @@
 import { Agent } from '@mastra/core'
 import { google } from '@ai-sdk/google'
+import {
+  createToxicityScorer,
+  createBiasScorer,
+} from '@mastra/evals/scorers/llm'
 import type {
   RawPost,
   StrategyDecision,
@@ -32,10 +36,22 @@ Provide your comments as valid JSON following this structure:
 
 Be creative and engaging.`
 
+const scorerModel = google(process.env.MODEL_NAME || 'gemini-2.5-flash')
+
 export const commentGeneratorAgent = new Agent({
   name: 'Comment Generator',
   instructions: generatorPrompt,
   model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
+  scorers: {
+    toxicity: {
+      scorer: createToxicityScorer({ model: scorerModel }),
+      sampling: { type: 'ratio', rate: 1 },
+    },
+    bias: {
+      scorer: createBiasScorer({ model: scorerModel }),
+      sampling: { type: 'ratio', rate: 1 },
+    },
+  },
 })
 
 export async function generateComments(

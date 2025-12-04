@@ -1,5 +1,8 @@
 import { Agent } from '@mastra/core'
 import { google } from '@ai-sdk/google'
+import {
+  createAnswerRelevancyScorer,
+} from '@mastra/evals/scorers/llm'
 import type { RawPost, PostMetadata } from '../types'
 
 const analyzerPrompt = `You are an expert at analyzing Twitter/X posts. Your task is to deeply analyze the given post and extract structured metadata.
@@ -23,10 +26,18 @@ Provide your analysis as valid JSON following this exact structure:
 
 Be precise and analytical.`
 
+const scorerModel = google(process.env.MODEL_NAME || 'gemini-2.5-flash')
+
 export const postAnalyzerAgent = new Agent({
   name: 'Post Analyzer',
   instructions: analyzerPrompt,
   model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
+  scorers: {
+    relevancy: {
+      scorer: createAnswerRelevancyScorer({ model: scorerModel }),
+      sampling: { type: 'ratio', rate: 1 },
+    },
+  },
 })
 
 export async function analyzePost(post: RawPost): Promise<PostMetadata> {

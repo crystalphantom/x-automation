@@ -1,5 +1,8 @@
 import { Agent } from '@mastra/core'
 import { google } from '@ai-sdk/google'
+import {
+  createAnswerRelevancyScorer,
+} from '@mastra/evals/scorers/llm'
 import type {
   PostMetadata,
   UserPreferences,
@@ -34,10 +37,18 @@ Provide your decision as valid JSON following this structure:
 
 Be strategic and consider the user's engagement goals.`
 
+const scorerModel = google(process.env.MODEL_NAME || 'gemini-2.5-flash')
+
 export const strategyAgent = new Agent({
   name: 'Strategy Agent',
   instructions: strategyPrompt,
   model: google(process.env.MODEL_NAME || 'gemini-2.5-flash'),
+  scorers: {
+    relevancy: {
+      scorer: createAnswerRelevancyScorer({ model: scorerModel }),
+      sampling: { type: 'ratio', rate: 1 },
+    },
+  },
 })
 
 export async function makeStrategyDecision(
