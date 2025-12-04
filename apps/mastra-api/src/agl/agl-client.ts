@@ -118,7 +118,7 @@ export async function queryRollouts(params?: {
     limit?: number;
     offset?: number;
 }) {
-    const response = await client.post("/query_rollouts", params || {});
+    const response = await client.post("/rollouts/search", params || {});
     return response.data;
 }
 

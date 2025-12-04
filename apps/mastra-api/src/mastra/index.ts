@@ -41,21 +41,6 @@ export const mastra = new Mastra({
   storage: new LibSQLStore({
     url: `file:${DB_PATH}`,
   }),
-
-  // ✨ Agent Lightning: Enable OTLP Telemetry for RL Training
-  // This automatically sends execution traces to AGL server for optimization
-  telemetry: {
-    enabled: true,
-    serviceName: "mastra-x-automation",
-    export: {
-      type: "otlp",
-      protocol: "http",
-      endpoint: "http://localhost:4747/v1/traces",
-      headers: {
-        "x-agent-id": "post-analyzer-agent",
-      },
-    },
-  },
 });
 
 // Export agent functions for use in web app

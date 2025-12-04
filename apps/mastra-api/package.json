@@ -17,12 +17,20 @@
     "agl:submit": "tsx src/agl/test-runner.ts",
     "agl:train": "cd ../.. && source .venv/bin/activate && python apps/mastra-api/agl-training/train_post_analyzer.py",
     "agl:status": "tsx src/agl/check-status.ts",
-    "agl:monitor": "tsx src/agl/monitor.ts"
+    "agl:monitor": "tsx src/agl/monitor.ts",
+    "agl:analyze": "tsx src/agl/analyze-data.ts",
+    "agl:eval": "tsx src/agl/evaluate-rollouts.ts",
+    "agl:otel-test": "AGL_ENABLED=true tsx src/agl/test-otel.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.44",
     "@mastra/core": "^0.24.6",
     "@mastra/libsql": "^0.16.3",
+    "@opentelemetry/core": "^2.2.0",
+    "@opentelemetry/resources": "^2.2.0",
+    "@opentelemetry/sdk-trace-base": "^2.2.0",
+    "@opentelemetry/sdk-trace-node": "^2.2.0",
+    "@opentelemetry/semantic-conventions": "^1.38.0",
     "agent-lightning-sdk": "^0.1.1",
     "ai": "^5.0.104",
     "axios": "^1.13.2",
