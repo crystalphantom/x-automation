@@ -17,6 +17,10 @@ import type { RawPost, UserPreferences, PostMetadata } from "./types";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 
+// AGL Integration
+import { AGL_ENABLED, checkAGLHealth } from "../agl/agl-integration";
+import { wrapAgentWithAGL } from "../agl/agl-agent-wrapper";
+
 // Get the directory of this module file (use unique names to avoid Mastra bundler conflicts)
 const _moduleFilename = fileURLToPath(import.meta.url);
 const _moduleDirname = dirname(_moduleFilename);
@@ -26,6 +30,28 @@ const _moduleDirname = dirname(_moduleFilename);
 const DB_PATH = join(_moduleDirname, "..", "..", "mastra.db");
 
 console.log("🗄️  Mastra database path:", DB_PATH);
+
+// Initialize AGL status logging
+if (AGL_ENABLED) {
+  console.log("🚀 AGL integration enabled");
+  console.log(`   Server: ${process.env.AGL_SERVER_URL || "http://localhost:4747"}`);
+
+  // Check health asynchronously
+  checkAGLHealth().then(healthy => {
+    if (healthy) {
+      console.log("   Status: ✅ Connected to AGL server");
+    } else {
+      console.warn("   Status: ⚠️ AGL server not reachable");
+    }
+  });
+
+  // Wrap agents with AGL integration
+  wrapAgentWithAGL(postAnalyzerAgent, "postAnalyzer");
+  wrapAgentWithAGL(strategyAgent, "strategyAgent");
+  wrapAgentWithAGL(commentGeneratorAgent, "commentGenerator");
+  wrapAgentWithAGL(qaAgent, "qaAgent");
+  console.log("   Agents: ✅ Wrapped with AGL integration");
+}
 
 // Model for scorers
 const scorerModel = google(process.env.MODEL_NAME || "gemini-2.5-flash");
@@ -45,7 +71,7 @@ export const mastra = new Mastra({
     bias: createBiasScorer({ model: scorerModel }),
   },
 
-  // Enable AI Tracing with recommended configuration
+  // Enable AI Tracing - AGL integration hooks in via agent wrapper
   observability: {
     default: {
       enabled: true, // Enables DefaultExporter with 'always' sampling
@@ -67,3 +93,4 @@ export { postAnalyzerAgent, strategyAgent, commentGeneratorAgent, qaAgent };
 
 // Export types
 export type { RawPost, UserPreferences, PostMetadata };
+

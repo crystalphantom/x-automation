@@ -20,7 +20,7 @@
     "agl:monitor": "tsx src/agl/monitor.ts",
     "agl:analyze": "tsx src/agl/analyze-data.ts",
     "agl:eval": "tsx src/agl/evaluate-rollouts.ts",
-    "agl:otel-test": "AGL_ENABLED=true tsx src/agl/test-otel.ts"
+    "agl:otel-test": "AGL_ENABLED=true tsx src/agl/test-agl-integration.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.44",
