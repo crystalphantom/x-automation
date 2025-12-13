@@ -1,21 +1,21 @@
-import { Mastra } from "@mastra/core";
-import { LibSQLStore } from "@mastra/libsql";
 import { google } from "@ai-sdk/google";
+import { Mastra } from "@mastra/core";
 import {
   createAnswerRelevancyScorer,
-  createToxicityScorer,
   createBiasScorer,
+  createToxicityScorer,
 } from "@mastra/evals/scorers/llm";
-import { postAnalyzerAgent, analyzePost } from "./agents/post-analyzer";
-import { strategyAgent, makeStrategyDecision } from "./agents/strategy-agent";
+import { LibSQLStore } from "@mastra/libsql";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 import {
   commentGeneratorAgent,
   generateComments,
 } from "./agents/comment-generator";
-import { qaAgent, assessQuality } from "./agents/quality-assurance";
-import type { RawPost, UserPreferences, PostMetadata } from "./types";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
+import { analyzePost, postAnalyzerAgent } from "./agents/post-analyzer";
+import { assessQuality, qaAgent } from "./agents/quality-assurance";
+import { makeStrategyDecision, strategyAgent } from "./agents/strategy-agent";
+import type { PostMetadata, RawPost, UserPreferences } from "./types";
 
 // Get the directory of this module file (use unique names to avoid Mastra bundler conflicts)
 const _moduleFilename = fileURLToPath(import.meta.url);
@@ -26,6 +26,8 @@ const _moduleDirname = dirname(_moduleFilename);
 const DB_PATH = join(_moduleDirname, "..", "..", "mastra.db");
 
 console.log("🗄️  Mastra database path:", DB_PATH);
+
+console.log("SOME_DUMMY_VARIABLE", process.env.SOME_DUMMY_VARIABLE);
 
 // Model for scorers
 const scorerModel = google(process.env.MODEL_NAME || "gemini-2.5-flash");
@@ -45,12 +47,15 @@ export const mastra = new Mastra({
     bias: createBiasScorer({ model: scorerModel }),
   },
 
-  // Enable AI Tracing with recommended configuration
-  observability: {
-    default: {
-      enabled: true, // Enables DefaultExporter with 'always' sampling
+  telemetry: {
+    enabled: true,
+    export: {
+      type: "otlp",
+      // endpoint and headers will be read from OTEL_EXPORTER_OTLP_* env vars
     },
   },
+
+  // Enable AI Tracing with Langfuse integration
 
   // Storage for traces - using absolute path
   // This ensures both web app and mastra-api use the SAME database
@@ -58,27 +63,15 @@ export const mastra = new Mastra({
     url: `file:${DB_PATH}`,
   }),
 
-  // ✨ Agent Lightning: Enable OTLP Telemetry for RL Training
-  // This automatically sends execution traces to AGL server for optimization
-  telemetry: {
-    enabled: true,
-    serviceName: "mastra-x-automation",
-    export: {
-      type: "otlp",
-      protocol: "http",
-      endpoint: "http://localhost:4747/v1/traces",
-      headers: {
-        "x-agent-id": "post-analyzer-agent",
-      },
-    },
-  },
+
 });
 
 // Export agent functions for use in web app
-export { analyzePost, makeStrategyDecision, generateComments, assessQuality };
+export { analyzePost, assessQuality, generateComments, makeStrategyDecision };
 
 // Export agent instances for custom Mastra clients
-export { postAnalyzerAgent, strategyAgent, commentGeneratorAgent, qaAgent };
+export { commentGeneratorAgent, postAnalyzerAgent, qaAgent, strategyAgent };
 
 // Export types
-export type { RawPost, UserPreferences, PostMetadata };
+export type { PostMetadata, RawPost, UserPreferences };
+
