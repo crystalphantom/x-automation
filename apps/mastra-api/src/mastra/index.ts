@@ -5,6 +5,7 @@ import {
   createBiasScorer,
   createToxicityScorer,
 } from "@mastra/evals/scorers/llm";
+import { LangfuseExporter } from "@mastra/langfuse";
 import { LibSQLStore } from "@mastra/libsql";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
@@ -49,13 +50,39 @@ export const mastra = new Mastra({
 
   telemetry: {
     enabled: true,
-    export: {
-      type: "otlp",
-      // endpoint and headers will be read from OTEL_EXPORTER_OTLP_* env vars
-    },
   },
 
   // Enable AI Tracing with Langfuse integration
+
+  // AI Tracing Configuration
+  observability: {
+    default: { enabled: true }, // Enable by default
+    
+    configs: {
+      langfuse: {
+        serviceName: "my-mastra-service", // Your service name
+        // Export to Langfuse
+        exporters: [
+          new LangfuseExporter({
+            publicKey: process.env.LANGFUSE_PUBLIC_KEY!,
+            secretKey: process.env.LANGFUSE_SECRET_KEY!,
+            baseUrl: process.env.LANGFUSE_BASE_URL || "https://cloud.langfuse.com",
+            realtime: true, // Send traces in real-time
+            logLevel: "debug", // For debugging
+            options: {
+              environment: process.env.NODE_ENV || "development",
+            },
+          }),
+        ],
+      },
+    },
+    
+    // (Optional) Dynamic config selector
+    configSelector: (context, availableConfigs) => {
+      // Use Langfuse tracing by default
+      return "langfuse";
+    },
+  },
 
   // Storage for traces - using absolute path
   // This ensures both web app and mastra-api use the SAME database
@@ -70,8 +97,8 @@ export const mastra = new Mastra({
 export { analyzePost, assessQuality, generateComments, makeStrategyDecision };
 
 // Export agent instances for custom Mastra clients
-export { commentGeneratorAgent, postAnalyzerAgent, qaAgent, strategyAgent };
+  export { commentGeneratorAgent, postAnalyzerAgent, qaAgent, strategyAgent };
 
 // Export types
-export type { PostMetadata, RawPost, UserPreferences };
+  export type { PostMetadata, RawPost, UserPreferences };
 
