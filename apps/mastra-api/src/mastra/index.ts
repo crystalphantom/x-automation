@@ -29,6 +29,44 @@ const DB_PATH = join(_moduleDirname, "..", "..", "mastra.db");
 console.log("🗄️  Mastra database path:", DB_PATH);
 
 console.log("SOME_DUMMY_VARIABLE", process.env.SOME_DUMMY_VARIABLE);
+// console.log(
+//   "OTEL_EXPORTER_OTLP_ENDPOINT",
+//   process.env.OTEL_EXPORTER_OTLP_ENDPOINT
+// );
+// console.log(
+//   "OTEL_EXPORTER_OTLP_HEADERS",
+//   process.env.OTEL_EXPORTER_OTLP_HEADERS
+// );
+
+// Parse OTEL headers from environment variable string to object
+const parseOtelHeaders = (
+  headersStr: string | undefined
+): Record<string, string> | undefined => {
+  if (!headersStr) return undefined;
+
+  try {
+    // Remove quotes if present and split by comma
+    const cleanHeaders = headersStr.replace(/^['"]|['"]$/g, "");
+    const headers: Record<string, string> = {};
+
+    cleanHeaders.split(",").forEach((header) => {
+      const [key, value] = header.split("=");
+      if (key && value) {
+        headers[key.trim()] = value.trim();
+      }
+    });
+
+    return headers;
+  } catch (error) {
+    console.error("Failed to parse OTEL headers:", error);
+    return undefined;
+  }
+};
+
+console.log(
+  "Parsed OTEL headers:",
+  parseOtelHeaders(process.env.OTEL_EXPORTER_OTLP_HEADERS)
+);
 
 // Model for scorers
 const scorerModel = google(process.env.MODEL_NAME || "gemini-2.5-flash");
@@ -50,55 +88,54 @@ export const mastra = new Mastra({
 
   telemetry: {
     enabled: true,
-  },
-
-  // Enable AI Tracing with Langfuse integration
-
-  // AI Tracing Configuration
-  observability: {
-    default: { enabled: true }, // Enable by default
-    
-    configs: {
-      langfuse: {
-        serviceName: "my-mastra-service", // Your service name
-        // Export to Langfuse
-        exporters: [
-          new LangfuseExporter({
-            publicKey: process.env.LANGFUSE_PUBLIC_KEY!,
-            secretKey: process.env.LANGFUSE_SECRET_KEY!,
-            baseUrl: process.env.LANGFUSE_BASE_URL || "https://cloud.langfuse.com",
-            realtime: true, // Send traces in real-time
-            logLevel: "debug", // For debugging
-            options: {
-              environment: process.env.NODE_ENV || "development",
-            },
-          }),
-        ],
-      },
-    },
-    
-    // (Optional) Dynamic config selector
-    configSelector: (context, availableConfigs) => {
-      // Use Langfuse tracing by default
-      return "langfuse";
+    serviceName: "mastra-automation",
+    export: {
+      type: "otlp",
+      endpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
+      headers: parseOtelHeaders(process.env.OTEL_EXPORTER_OTLP_HEADERS),
     },
   },
+
+  // observability: {
+  //   default: { enabled: true }, // Enable by default
+    
+  //   configs: {
+  //     langfuse: {
+  //       serviceName: "my-mastra-service", // Your service name
+  //       // Export to Langfuse
+  //       exporters: [
+  //         new LangfuseExporter({
+  //           publicKey: process.env.LANGFUSE_PUBLIC_KEY!,
+  //           secretKey: process.env.LANGFUSE_SECRET_KEY!,
+  //           baseUrl: process.env.LANGFUSE_BASE_URL || "https://cloud.langfuse.com",
+  //           realtime: true, // Send traces in real-time
+  //           logLevel: "debug", // For debugging
+  //           options: {
+  //             environment: process.env.NODE_ENV || "development",
+  //           },
+  //         }),
+  //       ],
+  //     },
+  //   },
+  //   // (Optional) Dynamic config selector
+  //   configSelector: (context, availableConfigs) => {
+  //     // Use Langfuse tracing by default
+  //     return "langfuse";
+  //   },
+  // },
 
   // Storage for traces - using absolute path
   // This ensures both web app and mastra-api use the SAME database
   storage: new LibSQLStore({
     url: `file:${DB_PATH}`,
   }),
-
-
 });
 
 // Export agent functions for use in web app
 export { analyzePost, assessQuality, generateComments, makeStrategyDecision };
 
 // Export agent instances for custom Mastra clients
-  export { commentGeneratorAgent, postAnalyzerAgent, qaAgent, strategyAgent };
+export { commentGeneratorAgent, postAnalyzerAgent, qaAgent, strategyAgent };
 
 // Export types
-  export type { PostMetadata, RawPost, UserPreferences };
-
+export type { PostMetadata, RawPost, UserPreferences };
