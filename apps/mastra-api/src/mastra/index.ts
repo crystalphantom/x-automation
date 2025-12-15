@@ -5,7 +5,7 @@ import {
   createBiasScorer,
   createToxicityScorer,
 } from "@mastra/evals/scorers/llm";
-import { LangfuseExporter } from "@mastra/langfuse";
+import { OpikExporter } from "@mastra/opik";
 import { LibSQLStore } from "@mastra/libsql";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
@@ -29,14 +29,14 @@ const DB_PATH = join(_moduleDirname, "..", "..", "mastra.db");
 console.log("🗄️  Mastra database path:", DB_PATH);
 
 console.log("SOME_DUMMY_VARIABLE", process.env.SOME_DUMMY_VARIABLE);
-// console.log(
-//   "OTEL_EXPORTER_OTLP_ENDPOINT",
-//   process.env.OTEL_EXPORTER_OTLP_ENDPOINT
-// );
-// console.log(
-//   "OTEL_EXPORTER_OTLP_HEADERS",
-//   process.env.OTEL_EXPORTER_OTLP_HEADERS
-// );
+console.log(
+  "OTEL_EXPORTER_OTLP_ENDPOINT",
+  process.env.OTEL_EXPORTER_OTLP_ENDPOINT
+);
+console.log(
+  "OTEL_EXPORTER_OTLP_HEADERS",
+  process.env.OTEL_EXPORTER_OTLP_HEADERS
+);
 
 // Parse OTEL headers from environment variable string to object
 const parseOtelHeaders = (
@@ -86,43 +86,40 @@ export const mastra = new Mastra({
     bias: createBiasScorer({ model: scorerModel }),
   },
 
-  telemetry: {
-    enabled: true,
-    serviceName: "mastra-automation",
-    export: {
-      type: "otlp",
-      endpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
-      headers: parseOtelHeaders(process.env.OTEL_EXPORTER_OTLP_HEADERS),
-    },
-  },
-
-  // observability: {
-  //   default: { enabled: true }, // Enable by default
-    
-  //   configs: {
-  //     langfuse: {
-  //       serviceName: "my-mastra-service", // Your service name
-  //       // Export to Langfuse
-  //       exporters: [
-  //         new LangfuseExporter({
-  //           publicKey: process.env.LANGFUSE_PUBLIC_KEY!,
-  //           secretKey: process.env.LANGFUSE_SECRET_KEY!,
-  //           baseUrl: process.env.LANGFUSE_BASE_URL || "https://cloud.langfuse.com",
-  //           realtime: true, // Send traces in real-time
-  //           logLevel: "debug", // For debugging
-  //           options: {
-  //             environment: process.env.NODE_ENV || "development",
-  //           },
-  //         }),
-  //       ],
-  //     },
-  //   },
-  //   // (Optional) Dynamic config selector
-  //   configSelector: (context, availableConfigs) => {
-  //     // Use Langfuse tracing by default
-  //     return "langfuse";
+  // telemetry: {
+  //   enabled: true,
+  //   serviceName: "mastra-automation",
+  //   export: {
+  //     type: "otlp",
+  //     endpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
+  //     headers: parseOtelHeaders(process.env.OTEL_EXPORTER_OTLP_HEADERS),
   //   },
   // },
+
+  // 🔭 Alternative: Use OpikExporter for custom integration
+  // Note: The OTEL export above is the recommended approach for Opik
+  // since Opik has native OTEL support. Use OpikExporter only if you
+  // need custom span handling or direct SDK access.
+  //
+  //
+  // To use with observability config (requires Mastra 1.x+):
+  observability: {
+    configs: {
+      opik: {
+        serviceName: "mastra-automation",
+        exporters: [
+          new OpikExporter({
+            apiKey: process.env.OPIK_API_KEY!,
+            apiUrl: process.env.OTEL_EXPORTER_OTLP_ENDPOINT!,
+            projectName: process.env.OPIK_PROJECT_NAME || "mastra-automation",
+            workspaceName: "ent-buddy",
+            realtime: true,
+            logLevel: "debug",
+          }),
+        ],
+      },
+    },
+  },
 
   // Storage for traces - using absolute path
   // This ensures both web app and mastra-api use the SAME database
