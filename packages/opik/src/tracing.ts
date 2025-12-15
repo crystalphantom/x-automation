@@ -40,6 +40,8 @@ type TraceData = {
   spans: Map<string, OpikSpan>;
   activeSpans: Set<string>;
   rootSpanId?: string;
+  /** Track the last output from child spans (for propagation to trace) */
+  lastOutput?: unknown;
 };
 
 /**
@@ -208,9 +210,22 @@ export class OpikExporter extends BaseExporter {
     );
     if (!traceData) return;
 
+    // Capture output from child spans (MODEL_GENERATION, MODEL_STEP)
+    // This is used to propagate output to the trace when root span has no output
+    if (
+      !span.isRootSpan &&
+      span.output &&
+      (span.type === AISpanType.MODEL_GENERATION ||
+        span.type === AISpanType.MODEL_STEP)
+    ) {
+      traceData.lastOutput = span.output;
+    }
+
     if (span.isRootSpan) {
       // Update or end the root trace
-      const updatePayload = this.buildTraceUpdatePayload(span);
+      // Use lastOutput from child spans if root span has no output
+      const output = span.output || traceData.lastOutput;
+      const updatePayload = this.buildTraceUpdatePayload(span, output);
       traceData.trace.update(updatePayload);
 
       if (isEnd) {
@@ -324,11 +339,16 @@ export class OpikExporter extends BaseExporter {
   }
 
   private buildTraceUpdatePayload(
-    span: AnyExportedAISpan
+    span: AnyExportedAISpan,
+    output?: unknown
   ): Record<string, unknown> {
     const payload: Record<string, unknown> = {};
 
-    if (span.output !== undefined) payload.output = span.output;
+    // Use provided output (may be propagated from child spans) or span's own output
+    const finalOutput = output ?? span.output;
+    if (finalOutput !== undefined && finalOutput !== "") {
+      payload.output = finalOutput;
+    }
     if (span.metadata) payload.metadata = span.metadata;
 
     return payload;
